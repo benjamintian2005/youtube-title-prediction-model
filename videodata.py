@@ -35,7 +35,10 @@ for word in words:
 
     for video in video_details['items']:
         title = video['snippet']['title']
-        view_count = int(video['statistics'].get('viewCount'))
+        views = video['statistics'].get('viewCount')
+        if views is None:
+            views = 0
+        view_count = int(views)
         data.append((title, view_count))
 
 
@@ -63,7 +66,7 @@ r2 = r2_score(y_test, y_pred) #correlation
 
 
 
-test = "test title"
+test = "this should scare you"
 X = vectorizer.transform([test]).toarray()
 print(int(best_model.predict(X)))
 
