@@ -1,21 +1,42 @@
-# YouTube Title to YouTube View Prediction Model
+# youtube title → view predictor
 
-This project is focused on predicting the number of views a YouTube video might get based on its title. The model uses various techniques, including natural language processing (NLP), machine learning, and data analysis, to extract features from video titles and make predictions about their potential view count.
+predicts how many views a youtube video might get based on its title alone. trained on live data scraped with yt-dlp — no api key needed.
 
+## how it works
 
-## Features
+1. scrapes youtube search results for a list of seed keywords using yt-dlp
+2. trains a ridge regression model on TF-IDF title features + some basic title stats (length, caps ratio, punctuation, etc.)
+3. predicts **views/day** rather than raw views to avoid penalizing newer videos
 
-- **YouTube Title Analysis**: The model processes the title of a YouTube video to predict its number of views.
-- **Prediction Model**: Machine learning algorithms primariry linear regression to predict views based on title-related features.
-- **Text Processing**: Uses NLP techniques to clean, tokenize, and extract meaningful features from video titles.
-- **Dataset**: The model uses a large dataset of YouTube video titles using Youtube DataAnalytics API and their respective views to train and make accurate predictions.
-- **Prediction Output**: Provides the predicted number of views based on input title and associated features.
+## setup
 
+```bash
+pip install yt-dlp scikit-learn numpy joblib scipy
+```
 
-## Installation
+## usage
 
-To run the project locally:
+train the model (takes a few minutes, hits youtube):
+```bash
+python videodata.py
+```
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/youtube-view-prediction.git
+predict titles:
+```bash
+python test.py                          # runs sample titles
+python test.py "my video title here"    # predict a specific title
+```
+
+output looks like:
+```
+Title: how to make ramen at home
+  Views/day:          1,240
+  Projected 30d:     37,200
+  Projected 365d:   452,600
+```
+
+## notes
+
+- predictions are rough — title is a weak signal on its own. channel size, thumbnail, and upload timing matter way more
+- `channel_follower_count` and `duration` are collected where available and used as features; missing values are imputed with training medians
+- to get more training data, add seed words to `SEED_WORDS` in `videodata.py`
