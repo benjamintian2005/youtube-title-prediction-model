@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.7237,
-  "log_r2": 0.5828,
-  "real_mae": 12695.2,
-  "mdape": 69.7,
+  "log_mse": 1.6250,
+  "log_r2": 0.6436,
+  "real_mae": 11364.3,
+  "mdape": 70.0,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T16:20:00",
-  "git_commit": "0821e35",
-  "note": "gen-4 baseline (autonomous pivot, per program.md's new Pivoting section): hyperparameter tuning showed diminishing returns (last batch: 4/5 discards, ~0.3% net gain), so pivoted to a new feature axis - thumbnail-derived image stats (thumbnails.py: brightness/saturation/contrast/edge_density/warmth, downloaded+cached from URLs both scrapers now capture). Also fixed a real bug in scrape.py's save_and_merge: sort_values(\"scraped_at\") used the default unstable quicksort, so same-day re-scrapes could lose updates (like a newly-added thumbnail_url) to arbitrary tie-breaking against the old cached row - switched to kind=\"stable\". Also grew data 4103 -> 5152 rows along the way (needed to backfill thumbnail_url; the growth wasn't the primary hypothesis this cycle). Re-froze benchmark/dataset.csv (3554/793/805 train/val/test). Ran a same-benchmark ablation to isolate the thumbnail effect from the data-growth effect: with thumbnails log_mse=1.7237 (log_r2=0.583) vs without 1.7556 (log_r2=0.575) - a real, isolated ~1.8% win, not just noise from the new data mix. Test set (n=717) log_r2=0.630, mdape=70.7%, agrees with val - no overfitting flag. New epoch, raw log_mse not comparable to gen-3's 1.6803."
+  "timestamp": "2026-08-09T17:05:00",
+  "git_commit": "8b1a53d",
+  "note": "gen-5 baseline: pivot cycle 1/5 - extended the thumbnail win by growing thumbnail_url coverage (58.6% -> 72.4%) via MAX_RESULTS_PER_SEED 50 -> 75, growing data 5152 -> 6354 rows along the way. Re-froze benchmark/dataset.csv (4404/982/968 train/val/test). New epoch - log_r2 (0.644 vs gen-4's 0.583) is the meaningful cross-epoch comparison, a solid jump; mdape roughly flat (70.0% vs 69.7%). Test set (n=875) agrees closely: log_r2=0.649, mdape=68.8%, no overfitting flag."
 }
