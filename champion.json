@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.6197,
-  "log_r2": 0.5671,
-  "real_mae": 23114.2,
-  "mdape": 65.3,
+  "log_mse": 1.6086,
+  "log_r2": 0.5700,
+  "real_mae": 22982.9,
+  "mdape": 68.7,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T13:20:00",
-  "git_commit": "f5f33b6",
-  "note": "gen-2 baseline: grew data/videos.csv 801 -> 2413 rows (broadened SEED_WORDS across ~50 topic categories via api_scrape.py) and added a 'category' feature (OneHotEncoder, see features.py). Re-froze benchmark/dataset.csv (1671/366/376 train/val/test). New epoch - not comparable to gen-1's log_mse=2.776. val/test metrics closely agree (log_r2 0.567 val / 0.559 test, mdape 65.3% val / 69.0% test), a large jump over gen-1 (log_r2 0.213, mdape 89.7%) plausibly from both the ~5x bigger val/test sets being far less noisy and the new category signal. Not yet beaten by any hypothesis within this epoch."
+  "timestamp": "2026-08-09T14:05:00",
+  "git_commit": "c074d6b",
+  "note": "Hypothesis: TFIDF_PARAMS.max_features was 2000, tuned back when train had ~175 rows; now train has 1382 rows, likely enough to support a richer vocabulary. Tried max_features=5000. Result: HGB log_mse 1.6197 -> 1.6086 (log_r2 0.567 -> 0.570), a modest win - margin is small enough it could partly be noise at n_val=292, but it's a genuine improvement on the north-star metric so promoted per program.md's rule. mdape got slightly worse (65.3% -> 68.7%), a reminder log_mse and mdape don't always move together. Ridge got worse with the larger vocabulary (more overfitting risk on a linear model) but wasn't the winning candidate either way."
 }

@@ -50,7 +50,7 @@ CHAMPION_PATH = "champion.json"
 MIN_DAYS_OLD = 3
 
 TFIDF_PARAMS = dict(
-    max_features=2000,
+    max_features=5000,
     ngram_range=(1, 2),
     min_df=2,
     sublinear_tf=True,
