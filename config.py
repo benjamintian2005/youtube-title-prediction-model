@@ -23,8 +23,12 @@ SEED_WORDS = [
 ]
 # Each candidate now requires its own metadata fetch (see scrape.py) since
 # yt-dlp's flat search no longer returns upload_date/channel_follower_count,
-# so this is kept modest to keep a full scrape run to a few minutes.
-MAX_RESULTS_PER_SEED = 30
+# so this stays modest for scrape.py (one metadata fetch per candidate, slow).
+# api_scrape.py batches metadata fetches (cheap/fast), so this mostly just
+# controls how deep into each seed word's search results to look - raising it
+# surfaces candidates past the previous cutoff instead of re-finding the same
+# top results on every run.
+MAX_RESULTS_PER_SEED = 50
 
 DATA_PATH = "data/videos.csv"
 METRICS_PATH = "metrics.csv"

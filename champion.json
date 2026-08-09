@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.6086,
-  "log_r2": 0.5700,
-  "real_mae": 22982.9,
-  "mdape": 68.7,
+  "log_mse": 1.6847,
+  "log_r2": 0.5934,
+  "real_mae": 14296.9,
+  "mdape": 67.9,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T14:05:00",
-  "git_commit": "c074d6b",
-  "note": "Hypothesis: TFIDF_PARAMS.max_features was 2000, tuned back when train had ~175 rows; now train has 1382 rows, likely enough to support a richer vocabulary. Tried max_features=5000. Result: HGB log_mse 1.6197 -> 1.6086 (log_r2 0.567 -> 0.570), a modest win - margin is small enough it could partly be noise at n_val=292, but it's a genuine improvement on the north-star metric so promoted per program.md's rule. mdape got slightly worse (65.3% -> 68.7%), a reminder log_mse and mdape don't always move together. Ridge got worse with the larger vocabulary (more overfitting risk on a linear model) but wasn't the winning candidate either way."
+  "timestamp": "2026-08-09T14:45:00",
+  "git_commit": "3c40012",
+  "note": "gen-3 baseline: grew data/videos.csv 2413 -> 4103 rows (MAX_RESULTS_PER_SEED 30 -> 50, deeper per-seed-word search results via api_scrape.py). Re-froze benchmark/dataset.csv (2804/653/646 train/val/test). New epoch - raw log_mse isn't comparable to gen-2's 1.6086 since the val set's target distribution shifted with the new data mix; log_r2 (0.593 vs 0.570) and mdape (67.9% vs 68.7%) are the more meaningful cross-epoch signals, both modest improvements. Test set (n=573) agrees closely with val (log_r2=0.618, mdape=70.3%), no overfitting red flag. Not yet beaten by any hypothesis within this epoch."
 }
