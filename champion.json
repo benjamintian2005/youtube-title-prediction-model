@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.6803,
-  "log_r2": 0.5945,
-  "real_mae": 14306.1,
-  "mdape": 66.5,
+  "log_mse": 1.7237,
+  "log_r2": 0.5828,
+  "real_mae": 12695.2,
+  "mdape": 69.7,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T15:10:00",
-  "git_commit": "1fb7cbd",
-  "note": "Hypothesis: cycle 1 found min_df=2 caps real TF-IDF vocab at 4098 words (max_features never binding). Tried min_df=1, letting max_features=5000 pick from a much larger ~18.7K-word candidate pool instead. Result: small consistent win - HGB log_mse 1.6847 -> 1.6803, log_r2 0.593 -> 0.595, mdape 67.9% -> 66.5%; Ridge improved in the same direction too (log_mse 2.031 -> 2.007), which is a good corroborating signal this is real rather than noise. Promoted."
+  "timestamp": "2026-08-09T16:20:00",
+  "git_commit": "0821e35",
+  "note": "gen-4 baseline (autonomous pivot, per program.md's new Pivoting section): hyperparameter tuning showed diminishing returns (last batch: 4/5 discards, ~0.3% net gain), so pivoted to a new feature axis - thumbnail-derived image stats (thumbnails.py: brightness/saturation/contrast/edge_density/warmth, downloaded+cached from URLs both scrapers now capture). Also fixed a real bug in scrape.py's save_and_merge: sort_values(\"scraped_at\") used the default unstable quicksort, so same-day re-scrapes could lose updates (like a newly-added thumbnail_url) to arbitrary tie-breaking against the old cached row - switched to kind=\"stable\". Also grew data 4103 -> 5152 rows along the way (needed to backfill thumbnail_url; the growth wasn't the primary hypothesis this cycle). Re-froze benchmark/dataset.csv (3554/793/805 train/val/test). Ran a same-benchmark ablation to isolate the thumbnail effect from the data-growth effect: with thumbnails log_mse=1.7237 (log_r2=0.583) vs without 1.7556 (log_r2=0.575) - a real, isolated ~1.8% win, not just noise from the new data mix. Test set (n=717) log_r2=0.630, mdape=70.7%, agrees with val - no overfitting flag. New epoch, raw log_mse not comparable to gen-3's 1.6803."
 }
