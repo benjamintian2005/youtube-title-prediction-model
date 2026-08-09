@@ -25,19 +25,25 @@ def load_model(path=config.MODEL_PATH):
         sys.exit(1)
 
 
-def build_input_row(title):
+PROJECTION_DAYS = [30, 365]
+
+
+def build_input_row(title, days_old=None):
     feats = engineer_title_features(title)
     feats["title"] = title
-    # Unknown at title-only inference time; the pipeline's imputer fills
-    # these from training medians.
-    feats["log_days_old"] = np.nan
+    # duration/channel_follower_count are unknown at title-only inference
+    # time; the pipeline's imputer fills them from training medians.
+    # days_old is provided per-call (see predict_views_per_day) since the
+    # model learned a strong age/velocity relationship (see features.py)
+    # and a single imputed age would silently bias every projection.
+    feats["log_days_old"] = np.log1p(days_old) if days_old is not None else np.nan
     feats["duration"] = np.nan
     feats["channel_follower_count"] = np.nan
     return pd.DataFrame([{col: feats[col] for col in ["title"] + NUMERIC_FEATURE_COLUMNS}])
 
 
-def predict_views_per_day(title, model):
-    row = build_input_row(title)
+def predict_views_per_day(title, model, days_old=None):
+    row = build_input_row(title, days_old=days_old)
     return float(np.expm1(model.predict(row)[0]))
 
 
@@ -46,11 +52,13 @@ def main():
     titles = sys.argv[1:] if len(sys.argv) > 1 else SAMPLE_TITLES
 
     for title in titles:
-        vpd = predict_views_per_day(title, model)
+        vpd_day1 = predict_views_per_day(title, model, days_old=1)
         print(f"Title: {title}")
-        print(f"  Views/day:        {vpd:>12,.0f}")
-        print(f"  Projected 30d:    {vpd * 30:>12,.0f}")
-        print(f"  Projected 365d:   {vpd * 365:>12,.0f}")
+        print(f"  Views/day (day 1):     {vpd_day1:>12,.0f}")
+        for days in PROJECTION_DAYS:
+            vpd_at_horizon = predict_views_per_day(title, model, days_old=days)
+            projected_total = vpd_at_horizon * days
+            print(f"  Projected views by {days}d: {projected_total:>12,.0f}")
         print("-" * 40)
 
 
