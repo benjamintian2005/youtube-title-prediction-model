@@ -1,10 +1,10 @@
 {
-  "log_mse": 2.7757,
-  "log_r2": 0.2128,
-  "real_mae": 55573.5,
-  "mdape": 89.7,
+  "log_mse": 1.6197,
+  "log_r2": 0.5671,
+  "real_mae": 23114.2,
+  "mdape": 65.3,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T12:45:00",
-  "git_commit": "cfbbc28",
-  "note": "gen-1 baseline: re-froze benchmark/dataset.csv after growing data/videos.csv 403 -> 801 rows (api_scrape.py + scrape.py). New epoch, new val set (81 rows vs 48 before) - not numerically comparable to the gen-0 champion's log_mse=2.662. Not yet beaten by any hypothesis within this epoch."
+  "timestamp": "2026-08-09T13:20:00",
+  "git_commit": "f5f33b6",
+  "note": "gen-2 baseline: grew data/videos.csv 801 -> 2413 rows (broadened SEED_WORDS across ~50 topic categories via api_scrape.py) and added a 'category' feature (OneHotEncoder, see features.py). Re-froze benchmark/dataset.csv (1671/366/376 train/val/test). New epoch - not comparable to gen-1's log_mse=2.776. val/test metrics closely agree (log_r2 0.567 val / 0.559 test, mdape 65.3% val / 69.0% test), a large jump over gen-1 (log_r2 0.213, mdape 89.7%) plausibly from both the ~5x bigger val/test sets being far less noisy and the new category signal. Not yet beaten by any hypothesis within this epoch."
 }
