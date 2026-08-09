@@ -1,10 +1,10 @@
 {
-  "log_mse": 2.662,
-  "log_r2": 0.0654,
-  "real_mae": 78418.5,
-  "mdape": 82.4,
+  "log_mse": 2.7757,
+  "log_r2": 0.2128,
+  "real_mae": 55573.5,
+  "mdape": 89.7,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T11:51:00",
-  "git_commit": "55f1f0d",
-  "note": "gen-0 baseline: first champion under the frozen benchmark/dataset.csv split. Not yet beaten by any hypothesis."
+  "timestamp": "2026-08-09T12:45:00",
+  "git_commit": "cfbbc28",
+  "note": "gen-1 baseline: re-froze benchmark/dataset.csv after growing data/videos.csv 403 -> 801 rows (api_scrape.py + scrape.py). New epoch, new val set (81 rows vs 48 before) - not numerically comparable to the gen-0 champion's log_mse=2.662. Not yet beaten by any hypothesis within this epoch."
 }
