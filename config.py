@@ -1,6 +1,25 @@
+# Generic filler words ("the", "of", "is", ...) mostly surface whatever's
+# already most-viewed for that term, which skews the scraped sample toward
+# viral outliers and gives little topical/category diversity. Seeded with
+# real topic phrases spanning YouTube's major content categories instead, so
+# the "category" feature (see features.py) actually has variance to learn
+# from and the sample isn't dominated by a handful of mega-viral clusters.
 SEED_WORDS = [
-    "the", "what", "you", "this", "that", "with", "in", "be",
-    "and", "of", "to", "have", "on", "is", "for", "it", "win", "I", "ever",
+    "tech review", "gaming highlights", "cooking recipe", "home workout",
+    "personal finance tips", "diy woodworking", "makeup tutorial",
+    "travel vlog", "true crime", "science experiment", "movie review",
+    "comedy sketch", "guitar lesson", "car repair", "book review",
+    "meditation guide", "language learning", "dog training",
+    "gardening tips", "photography tutorial", "stock market news",
+    "crypto explained", "football highlights", "basketball highlights",
+    "yoga for beginners", "running tips", "coding tutorial", "ai news",
+    "history documentary", "space exploration", "health tips",
+    "parenting advice", "interior design", "fashion haul",
+    "skincare routine", "camping guide", "fishing tips", "chess strategy",
+    "anime review", "speedrun", "unboxing", "life hacks", "study tips",
+    "career advice", "startup story", "real estate investing",
+    "world news today", "standup comedy", "song cover", "dance tutorial",
+    "magic tricks", "product review", "minecraft", "video essay",
 ]
 # Each candidate now requires its own metadata fetch (see scrape.py) since
 # yt-dlp's flat search no longer returns upload_date/channel_follower_count,

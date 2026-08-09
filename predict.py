@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 import config
-from features import NUMERIC_FEATURE_COLUMNS, engineer_title_features
+from features import CATEGORICAL_FEATURE_COLUMNS, NUMERIC_FEATURE_COLUMNS, engineer_title_features
 
 SAMPLE_TITLES = [
     "How to train a neural network",
@@ -39,7 +39,11 @@ def build_input_row(title, days_old=None):
     feats["log_days_old"] = np.log1p(days_old) if days_old is not None else np.nan
     feats["duration"] = np.nan
     feats["channel_follower_count"] = np.nan
-    return pd.DataFrame([{col: feats[col] for col in ["title"] + NUMERIC_FEATURE_COLUMNS}])
+    # category is knowable pre-publish in principle, but predict.py's CLI is
+    # title-only for now - the pipeline's imputer buckets it as "unknown".
+    feats["category"] = np.nan
+    cols = ["title"] + NUMERIC_FEATURE_COLUMNS + CATEGORICAL_FEATURE_COLUMNS
+    return pd.DataFrame([{col: feats[col] for col in cols}])
 
 
 def predict_views_per_day(title, model, days_old=None):

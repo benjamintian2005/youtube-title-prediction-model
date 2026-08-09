@@ -4,7 +4,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 import config
 
@@ -18,6 +18,13 @@ NUMERIC_FEATURE_COLUMNS = [
     "title_length_bucket", "log_days_old",
     "duration", "channel_follower_count",
 ]
+
+# Unlike duration/channel_follower_count, category is legitimately knowable
+# before a video is published - it's not in NUMERIC_FEATURE_COLUMNS since it's
+# categorical (a YouTube category name, e.g. "Gaming") rather than ordinal.
+# Missing/unscraped-before-this-feature rows are imputed to "unknown", which
+# OneHotEncoder learns as its own bucket rather than erroring on unseen data.
+CATEGORICAL_FEATURE_COLUMNS = ["category"]
 
 
 def engineer_title_features(title):
@@ -46,6 +53,10 @@ def build_preprocessor(sparse=True):
         ("impute", SimpleImputer(strategy="median")),
         ("scale", StandardScaler()),
     ])
+    category_pipeline = Pipeline([
+        ("impute", SimpleImputer(strategy="constant", fill_value="unknown")),
+        ("onehot", OneHotEncoder(handle_unknown="ignore")),
+    ])
     # HistGradientBoostingRegressor requires dense input; Ridge is happy
     # with (and benefits from) sparse TF-IDF, so this is configurable.
     sparse_threshold = 0.3 if sparse else 0.0
@@ -53,6 +64,7 @@ def build_preprocessor(sparse=True):
         transformers=[
             ("tfidf", TfidfVectorizer(**config.TFIDF_PARAMS), "title"),
             ("num", numeric_pipeline, NUMERIC_FEATURE_COLUMNS),
+            ("cat", category_pipeline, CATEGORICAL_FEATURE_COLUMNS),
         ],
         sparse_threshold=sparse_threshold,
     )

@@ -14,7 +14,12 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
 import config
-from features import NUMERIC_FEATURE_COLUMNS, build_preprocessor, engineer_title_features
+from features import (
+    CATEGORICAL_FEATURE_COLUMNS,
+    NUMERIC_FEATURE_COLUMNS,
+    build_preprocessor,
+    engineer_title_features,
+)
 
 
 def _git_commit_hash():
@@ -45,6 +50,9 @@ def build_features(raw_df):
     # engineer_title_features doesn't require re-freezing - the train/val/test
     # partition (by video_id) stays valid regardless.
     df = raw_df.copy()
+    for col in CATEGORICAL_FEATURE_COLUMNS:
+        if col not in df.columns:
+            df[col] = None  # benchmark snapshot predates this feature
     df["upload_date"] = pd.to_datetime(df["upload_date"], format="%Y%m%d")
     df["scraped_at"] = pd.to_datetime(df["scraped_at"], format="%Y%m%d")
     df["days_old"] = (df["scraped_at"] - df["upload_date"]).dt.days.clip(lower=1)
@@ -57,7 +65,7 @@ def build_features(raw_df):
     title_feats = pd.DataFrame(df["title"].apply(engineer_title_features).tolist())
     df = pd.concat([df.reset_index(drop=True), title_feats], axis=1)
 
-    feature_cols = ["title"] + NUMERIC_FEATURE_COLUMNS
+    feature_cols = ["title"] + NUMERIC_FEATURE_COLUMNS + CATEGORICAL_FEATURE_COLUMNS
     X = df[feature_cols]
     y = np.log1p(df["views_per_day"].to_numpy())
     return X, y, df["split"]

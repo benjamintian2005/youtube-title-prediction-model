@@ -13,7 +13,7 @@ REQUEST_DELAY_SECONDS = 0.5
 
 DATA_COLUMNS = [
     "video_id", "title", "view_count", "upload_date",
-    "duration", "channel_follower_count", "scraped_at",
+    "duration", "channel_follower_count", "category", "scraped_at",
 ]
 
 
@@ -70,6 +70,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED):
             view_count = entry.get("view_count")
             upload_date = entry.get("upload_date")
             if title and view_count is not None and upload_date:
+                categories = entry.get("categories") or []
                 data.append({
                     "video_id": video_id,
                     "title": title,
@@ -77,6 +78,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED):
                     "upload_date": upload_date,
                     "duration": entry.get("duration"),
                     "channel_follower_count": entry.get("channel_follower_count"),
+                    "category": categories[0] if categories else None,
                     "scraped_at": scraped_at,
                 })
     return data

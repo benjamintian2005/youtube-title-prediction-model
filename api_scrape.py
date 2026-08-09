@@ -18,6 +18,23 @@ except ImportError:
 API_BASE = "https://www.googleapis.com/youtube/v3"
 BATCH_SIZE = 50  # videos.list / channels.list max ids per request
 
+# YouTube's category taxonomy is a small, stable, well-known set (videoCategories.list
+# would fetch it live, but that's another quota-costing call for something that
+# basically never changes) - names match yt-dlp's own `categories` field so
+# scrape.py and api_scrape.py populate the same "category" column consistently.
+CATEGORY_NAMES = {
+    "1": "Film & Animation", "2": "Autos & Vehicles", "10": "Music",
+    "15": "Pets & Animals", "17": "Sports", "18": "Short Movies",
+    "19": "Travel & Events", "20": "Gaming", "21": "Videoblogging",
+    "22": "People & Blogs", "23": "Comedy", "24": "Entertainment",
+    "25": "News & Politics", "26": "Howto & Style", "27": "Education",
+    "28": "Science & Technology", "29": "Nonprofits & Activism",
+    "30": "Movies", "31": "Anime/Animation", "32": "Action/Adventure",
+    "33": "Classics", "34": "Comedy", "35": "Documentary", "36": "Drama",
+    "37": "Family", "38": "Foreign", "39": "Horror", "40": "Sci-Fi/Fantasy",
+    "41": "Thriller", "42": "Shorts", "43": "Shows", "44": "Trailers",
+}
+
 _ISO8601_DURATION_RE = re.compile(
     r"^P(?:\d+D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$"
 )
@@ -120,6 +137,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED, api_key=None
 
         upload_date = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y%m%d")
         channel_id = snippet.get("channelId")
+        category_id = snippet.get("categoryId")
 
         data.append({
             "video_id": video_id,
@@ -128,6 +146,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED, api_key=None
             "upload_date": upload_date,
             "duration": _parse_iso8601_duration(content.get("duration")),
             "channel_follower_count": subscriber_counts.get(channel_id),
+            "category": CATEGORY_NAMES.get(category_id, category_id),
             "scraped_at": scraped_at,
         })
     return data
