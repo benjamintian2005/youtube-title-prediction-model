@@ -10,11 +10,10 @@ from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
 import config
-import scrape
 from features import NUMERIC_FEATURE_COLUMNS, build_preprocessor, engineer_title_features
 
 
@@ -28,16 +27,23 @@ def _git_commit_hash():
         return "unknown"
 
 
-def load_or_scrape():
-    df = scrape.load_cached()
-    if df.empty:
-        print("No cached data found, scraping...")
-        records = scrape.fetch_data(config.SEED_WORDS)
-        df = scrape.save_and_merge(records)
-    return df
+def load_benchmark(path=config.BENCHMARK_PATH):
+    if not os.path.exists(path):
+        raise SystemExit(
+            f"No benchmark found at {path}.\n"
+            f"Run 'python scrape.py' (if needed) then 'python freeze_benchmark.py' first."
+        )
+    return pd.read_csv(
+        path,
+        dtype={"video_id": str, "upload_date": str, "scraped_at": str, "split": str},
+    )
 
 
-def build_dataset(raw_df):
+def build_features(raw_df):
+    # Filtering/feature logic is intentionally applied *after* loading the
+    # frozen benchmark rather than baked into it, so changing MIN_DAYS_OLD or
+    # engineer_title_features doesn't require re-freezing - the train/val/test
+    # partition (by video_id) stays valid regardless.
     df = raw_df.copy()
     df["upload_date"] = pd.to_datetime(df["upload_date"], format="%Y%m%d")
     df["scraped_at"] = pd.to_datetime(df["scraped_at"], format="%Y%m%d")
@@ -54,7 +60,7 @@ def build_dataset(raw_df):
     feature_cols = ["title"] + NUMERIC_FEATURE_COLUMNS
     X = df[feature_cols]
     y = np.log1p(df["views_per_day"].to_numpy())
-    return X, y
+    return X, y, df["split"]
 
 
 def build_candidates():
@@ -71,7 +77,7 @@ def build_candidates():
     }
 
 
-def evaluate_candidate(name, pipeline, param_grid, X_train, y_train, X_test, y_test):
+def evaluate_candidate(name, pipeline, param_grid, X_train, y_train, X_val, y_val):
     if param_grid:
         search = GridSearchCV(pipeline, param_grid, cv=5, scoring="neg_mean_squared_error")
         search.fit(X_train, y_train)
@@ -81,20 +87,23 @@ def evaluate_candidate(name, pipeline, param_grid, X_train, y_train, X_test, y_t
         pipeline.fit(X_train, y_train)
         best, best_params = pipeline, {}
 
-    y_pred_log = best.predict(X_test)
-    log_mse = mean_squared_error(y_test, y_pred_log)
-    log_r2 = r2_score(y_test, y_pred_log)
+    y_pred_log = best.predict(X_val)
+    log_mse = mean_squared_error(y_val, y_pred_log)
+    log_r2 = r2_score(y_val, y_pred_log)
 
-    y_test_real = np.expm1(y_test)
+    y_val_real = np.expm1(y_val)
     y_pred_real = np.expm1(y_pred_log)
-    real_mae = mean_absolute_error(y_test_real, y_pred_real)
-    mdape = float(np.median(np.abs((y_test_real - y_pred_real) / np.maximum(y_test_real, 1.0))) * 100)
+    real_mae = mean_absolute_error(y_val_real, y_pred_real)
+    mdape = float(np.median(np.abs((y_val_real - y_pred_real) / np.maximum(y_val_real, 1.0))) * 100)
 
+    # column names kept as n_train/n_test for metrics.csv schema continuity;
+    # n_test here is actually n_val - see build_features/main for the
+    # train/val/test split (test is held out, see check_test.py).
     metrics = {
         "model_name": name,
         "best_params": json.dumps(best_params),
         "n_train": X_train.shape[0],
-        "n_test": X_test.shape[0],
+        "n_test": X_val.shape[0],
         "log_mse": log_mse,
         "log_r2": log_r2,
         "real_mae": real_mae,
@@ -114,18 +123,20 @@ def log_metrics(rows, path=config.METRICS_PATH):
 
 
 def main():
-    raw_df = load_or_scrape()
-    print(f"Loaded {len(raw_df)} cached rows")
-
-    X, y = build_dataset(raw_df)
+    raw_df = load_benchmark()
+    X, y, split = build_features(raw_df)
     print(f"{len(X)} rows remain after filtering days_old < {config.MIN_DAYS_OLD}")
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    train_mask = (split == "train").to_numpy()
+    val_mask = (split == "val").to_numpy()
+    X_train, y_train = X[train_mask], y[train_mask]
+    X_val, y_val = X[val_mask], y[val_mask]
+    print(f"train: {len(X_train)}  val: {len(X_val)}  (test set held out - see check_test.py)")
 
     results = []
     fitted = {}
     for name, (pipeline, param_grid) in build_candidates().items():
-        best, metrics = evaluate_candidate(name, pipeline, param_grid, X_train, y_train, X_test, y_test)
+        best, metrics = evaluate_candidate(name, pipeline, param_grid, X_train, y_train, X_val, y_val)
         fitted[name] = best
         results.append(metrics)
         print(f"{name:>6}: log_mse={metrics['log_mse']:.4f}  log_r2={metrics['log_r2']:.4f}  "
@@ -136,11 +147,12 @@ def main():
         key=lambda r: r["log_mse"],
     )["model_name"]
     best_model = fitted[best_name]
-    print(f"Best model: {best_name}")
+    print(f"Best candidate this run: {best_name}")
 
     log_metrics(results)
-    joblib.dump(best_model, config.MODEL_PATH)
-    print(f"Saved {config.MODEL_PATH}")
+    joblib.dump(best_model, config.CANDIDATE_PATH)
+    print(f"Saved candidate to {config.CANDIDATE_PATH}")
+    print(f"Compare its val log_mse against {config.CHAMPION_PATH} and promote manually if it wins (see program.md).")
 
 
 if __name__ == "__main__":
