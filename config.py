@@ -56,7 +56,7 @@ MIN_DAYS_OLD = 3
 TFIDF_PARAMS = dict(
     max_features=5000,
     ngram_range=(1, 2),
-    min_df=2,
+    min_df=1,
     sublinear_tf=True,
 )
 

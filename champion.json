@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.6847,
-  "log_r2": 0.5934,
-  "real_mae": 14296.9,
-  "mdape": 67.9,
+  "log_mse": 1.6803,
+  "log_r2": 0.5945,
+  "real_mae": 14306.1,
+  "mdape": 66.5,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T14:45:00",
-  "git_commit": "3c40012",
-  "note": "gen-3 baseline: grew data/videos.csv 2413 -> 4103 rows (MAX_RESULTS_PER_SEED 30 -> 50, deeper per-seed-word search results via api_scrape.py). Re-froze benchmark/dataset.csv (2804/653/646 train/val/test). New epoch - raw log_mse isn't comparable to gen-2's 1.6086 since the val set's target distribution shifted with the new data mix; log_r2 (0.593 vs 0.570) and mdape (67.9% vs 68.7%) are the more meaningful cross-epoch signals, both modest improvements. Test set (n=573) agrees closely with val (log_r2=0.618, mdape=70.3%), no overfitting red flag. Not yet beaten by any hypothesis within this epoch."
+  "timestamp": "2026-08-09T15:10:00",
+  "git_commit": "1fb7cbd",
+  "note": "Hypothesis: cycle 1 found min_df=2 caps real TF-IDF vocab at 4098 words (max_features never binding). Tried min_df=1, letting max_features=5000 pick from a much larger ~18.7K-word candidate pool instead. Result: small consistent win - HGB log_mse 1.6847 -> 1.6803, log_r2 0.593 -> 0.595, mdape 67.9% -> 66.5%; Ridge improved in the same direction too (log_mse 2.031 -> 2.007), which is a good corroborating signal this is real rather than noise. Promoted."
 }
