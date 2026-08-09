@@ -1,0 +1,10 @@
+{
+  "log_mse": 2.662,
+  "log_r2": 0.0654,
+  "real_mae": 78418.5,
+  "mdape": 82.4,
+  "model_name": "hgb",
+  "timestamp": "2026-08-09T11:51:00",
+  "git_commit": "55f1f0d",
+  "note": "gen-0 baseline: first champion under the frozen benchmark/dataset.csv split. Not yet beaten by any hypothesis."
+}
