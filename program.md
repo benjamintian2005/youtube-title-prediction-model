@@ -37,14 +37,59 @@ Lower is better. Your job each cycle is to try to beat it.
      ```
      Leave `model.pkl`/`champion.json` alone. The `metrics.csv` row from step 4 stays - it's
      the record of what was tried and didn't work.
-6. **Repeat.**
+6. **Repeat**, but see **Pivoting** below before defaulting to "another hyperparameter tweak" -
+   check whether it's time to change *what kind* of hypothesis you're trying.
+
+## Pivoting
+
+Hyperparameter/preprocessing tweaks (steps 1-6 above) are the cheapest cycle, but they have the
+smallest ceiling. Empirically, in this project, changes to *what data or features exist* have
+dwarfed changes to *how the existing data/features are tuned*:
+
+- Growing the dataset 403 -> 4103 rows + adding a `category` feature: `log_r2` 0 -> ~0.59.
+- Five straight cycles of TF-IDF/model hyperparameter tuning on top of that: `log_mse` moved
+  ~0.3%, and 4 of 5 cycles were discards.
+
+So: **track the last several cycles** (`metrics.csv` + `champion.json` history). If recent
+cycles are mostly discards, or the kept improvements are tiny relative to what data/feature
+changes have bought historically, stop tuning the current lever and pivot instead. Try, roughly
+in this order (highest historical leverage first):
+
+1. **More/better data.** Run `api_scrape.py` again (raise `MAX_RESULTS_PER_SEED` further, add
+   new seed word topics to `SEED_WORDS`, or just re-run as-is if it's been a while), then
+   `python freeze_benchmark.py` to start a new epoch. Re-freezing resets what `champion.json`'s
+   metric is comparable to (see the note field convention in past commits) - that's expected,
+   not a problem, just record it honestly in the new `champion.json`'s `note`.
+2. **A feature axis that doesn't exist yet**, not just a tweak to an existing one (`category`
+   was this kind of win). Thumbnail-derived features are the obvious next one (see the file's
+   git history around when this was discussed for the shape of that idea: a thumbnail URL is
+   already free from both scrapers' API payloads, but needs a new local cache and a real
+   implementation - go build it if you pivot here, don't just leave it as a TODO).
+3. **Model/hyperparameter tuning** (the default loop above) - use this once 1 and 2 are
+   reasonably exhausted for now, or to fill a cycle while deciding on a bigger pivot.
+
+**Structural pivots are in-scope to implement autonomously**, including new dependencies, new
+scraper logic, or new caching layers (e.g. a thumbnail image/embedding cache under `data/`,
+gitignored like `data/videos.csv`) - not just parameter changes. Hold them to the same bar as
+everything else: test end-to-end before committing (imports cleanly, `predict.py` and
+`check_test.py` still work, sane output on a few real examples), write a clear commit message,
+and record what you did in the batch digest. The one hard stop: if a pivot needs something you
+don't have access to (a new paid API key, a credential, a resource beyond what's already
+configured), don't attempt it silently - note it as a blocked option in the digest instead.
+
+**Still run in a bounded batch.** Pivoting to a bigger idea doesn't mean looping forever -
+whatever fixed number of cycles or wall-clock budget was given for this run still applies; stop
+at the end of it and report a full digest (what was tried, kept, discarded, and why), same as
+any other batch.
 
 ## Guardrails
 
-- **Never touch `benchmark/dataset.csv`, `scrape.py`, or `predict.py`'s input contract** as
-  part of a hypothesis. Those are the fixed harness - re-freezing the benchmark
-  (`python freeze_benchmark.py`) is a deliberate, occasional, human-triggered action for
-  starting a new research epoch (e.g. after a big new scrape), not something to do mid-loop.
+- **Don't touch `benchmark/dataset.csv` or re-freeze it as part of a routine hyperparameter
+  cycle** - only as a deliberate **Pivoting** action (see above) when growing the data is the
+  chosen lever, and only between cycles, never mid-cycle. `predict.py`'s input contract
+  (title-only CLI, falls back to imputed/unknown for anything else) shouldn't change casually
+  either - if a pivot needs it to accept new input (e.g. a thumbnail pivot letting a user pass
+  an image), that's a deliberate, documented interface change, not a side effect.
 - **Never evaluate against `split == 'test'` during the loop.** `check_test.py` exists
   specifically so the held-out test set doesn't get implicitly optimized against every
   iteration. Run it only occasionally (e.g. every ~10 kept improvements) as a sanity check
