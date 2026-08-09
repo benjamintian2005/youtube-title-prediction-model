@@ -48,6 +48,14 @@ def _parse_iso8601_duration(value):
     return hours * 3600 + minutes * 60 + seconds
 
 
+def _best_thumbnail_url(thumbnails):
+    for size in ("maxres", "high", "medium", "standard", "default"):
+        entry = (thumbnails or {}).get(size)
+        if entry and entry.get("url"):
+            return entry["url"]
+    return None
+
+
 def _chunks(items, size):
     items = list(items)
     for i in range(0, len(items), size):
@@ -147,6 +155,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED, api_key=None
             "duration": _parse_iso8601_duration(content.get("duration")),
             "channel_follower_count": subscriber_counts.get(channel_id),
             "category": CATEGORY_NAMES.get(category_id, category_id),
+            "thumbnail_url": _best_thumbnail_url(snippet.get("thumbnails")),
             "scraped_at": scraped_at,
         })
     return data

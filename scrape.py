@@ -13,7 +13,7 @@ REQUEST_DELAY_SECONDS = 0.5
 
 DATA_COLUMNS = [
     "video_id", "title", "view_count", "upload_date",
-    "duration", "channel_follower_count", "category", "scraped_at",
+    "duration", "channel_follower_count", "category", "thumbnail_url", "scraped_at",
 ]
 
 
@@ -79,6 +79,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED):
                     "duration": entry.get("duration"),
                     "channel_follower_count": entry.get("channel_follower_count"),
                     "category": categories[0] if categories else None,
+                    "thumbnail_url": entry.get("thumbnail"),
                     "scraped_at": scraped_at,
                 })
     return data
@@ -97,7 +98,13 @@ def save_and_merge(new_records, path=config.DATA_PATH):
     new_df = pd.DataFrame(new_records, columns=DATA_COLUMNS)
     combined = pd.concat([load_cached(path), new_df], ignore_index=True)
     combined = (
-        combined.sort_values("scraped_at")
+        # kind="stable" matters: every row scraped on the same day shares the
+        # same scraped_at date string, and the default quicksort isn't
+        # stable, so ties (same-day re-scrapes) broke in arbitrary order
+        # instead of reliably keeping the just-fetched (new_df, appended
+        # last) version - silently dropping updates like a newly-added
+        # thumbnail_url back to the old cached row's NaN.
+        combined.sort_values("scraped_at", kind="stable")
         .drop_duplicates(subset="video_id", keep="last")
         .reset_index(drop=True)
     )

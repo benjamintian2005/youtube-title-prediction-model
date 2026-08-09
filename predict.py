@@ -6,6 +6,7 @@ import pandas as pd
 
 import config
 from features import CATEGORICAL_FEATURE_COLUMNS, NUMERIC_FEATURE_COLUMNS, engineer_title_features
+from thumbnails import THUMBNAIL_FEATURE_COLUMNS
 
 SAMPLE_TITLES = [
     "How to train a neural network",
@@ -42,6 +43,10 @@ def build_input_row(title, days_old=None):
     # category is knowable pre-publish in principle, but predict.py's CLI is
     # title-only for now - the pipeline's imputer buckets it as "unknown".
     feats["category"] = np.nan
+    # thumbnail features need an actual image; unlike category, there's no
+    # thumbnail to point to for a title that doesn't exist as a video yet.
+    for col in THUMBNAIL_FEATURE_COLUMNS:
+        feats[col] = np.nan
     cols = ["title"] + NUMERIC_FEATURE_COLUMNS + CATEGORICAL_FEATURE_COLUMNS
     return pd.DataFrame([{col: feats[col] for col in cols}])
 

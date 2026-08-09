@@ -7,6 +7,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 import config
+from thumbnails import THUMBNAIL_FEATURE_COLUMNS
 
 FIRST_PERSON_RE = re.compile(r"\b(i|i'm|my|we|our|us)\b", re.IGNORECASE)
 BRACKETS_RE = re.compile(r"[\[({].*?[\])}]")
@@ -17,7 +18,7 @@ NUMERIC_FEATURE_COLUMNS = [
     "has_colon", "first_person_pronoun", "all_caps_word_count",
     "title_length_bucket", "log_days_old",
     "duration", "channel_follower_count",
-]
+] + THUMBNAIL_FEATURE_COLUMNS
 
 # Unlike duration/channel_follower_count, category is legitimately knowable
 # before a video is published - it's not in NUMERIC_FEATURE_COLUMNS since it's

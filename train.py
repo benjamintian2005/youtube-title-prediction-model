@@ -14,6 +14,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
 import config
+import thumbnails
 from features import (
     CATEGORICAL_FEATURE_COLUMNS,
     NUMERIC_FEATURE_COLUMNS,
@@ -53,6 +54,8 @@ def build_features(raw_df):
     for col in CATEGORICAL_FEATURE_COLUMNS:
         if col not in df.columns:
             df[col] = None  # benchmark snapshot predates this feature
+    if "thumbnail_url" not in df.columns:
+        df["thumbnail_url"] = None  # benchmark snapshot predates this feature
     df["upload_date"] = pd.to_datetime(df["upload_date"], format="%Y%m%d")
     df["scraped_at"] = pd.to_datetime(df["scraped_at"], format="%Y%m%d")
     df["days_old"] = (df["scraped_at"] - df["upload_date"]).dt.days.clip(lower=1)
@@ -64,6 +67,11 @@ def build_features(raw_df):
 
     title_feats = pd.DataFrame(df["title"].apply(engineer_title_features).tolist())
     df = pd.concat([df.reset_index(drop=True), title_feats], axis=1)
+
+    # Downloads are cached under data/thumbnails/ (gitignored like data/videos.csv) -
+    # only the first run against a given benchmark actually pays the network cost.
+    thumb_feats = thumbnails.compute_features_for_df(df)
+    df = pd.concat([df, thumb_feats], axis=1)
 
     feature_cols = ["title"] + NUMERIC_FEATURE_COLUMNS + CATEGORICAL_FEATURE_COLUMNS
     X = df[feature_cols]
