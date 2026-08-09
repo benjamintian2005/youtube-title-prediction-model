@@ -17,7 +17,7 @@ DATA_COLUMNS = [
 ]
 
 
-def _search_candidate_ids(seed_words, max_results):
+def search_candidate_ids(seed_words, max_results):
     # extract_flat is fast (no per-video request) but current yt-dlp no
     # longer populates upload_date/channel_follower_count on flat search
     # results, so it's only used here to gather candidate video ids and
@@ -45,7 +45,7 @@ def _search_candidate_ids(seed_words, max_results):
 
 def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED):
     scraped_at = datetime.today().strftime("%Y%m%d")
-    candidates = _search_candidate_ids(seed_words, max_results)
+    candidates = search_candidate_ids(seed_words, max_results)
     print(f"Found {len(candidates)} unique candidate videos, fetching full metadata...")
 
     data = []

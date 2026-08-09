@@ -3,3 +3,7 @@ numpy>=1.24
 scikit-learn>=1.3
 yt-dlp>=2024.1.1
 joblib>=1.3
+
+# optional: only needed for api_scrape.py (YouTube Data API v3 data source)
+requests>=2.31
+python-dotenv>=1.0

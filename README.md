@@ -6,7 +6,7 @@ this is set up as an **autoresearch**-style project (see [karpathy/autoresearch]
 
 ## how it works
 
-1. `scrape.py` searches youtube for a list of seed keywords via yt-dlp, dedupes by video id, and accumulates results into `data/videos.csv` (safe to re-run — it merges with what's already cached instead of overwriting). gitignored — this is the raw, ever-growing cache.
+1. `scrape.py` searches youtube for a list of seed keywords via yt-dlp, dedupes by video id, and accumulates results into `data/videos.csv` (safe to re-run — it merges with what's already cached instead of overwriting). gitignored — this is the raw, ever-growing cache. `api_scrape.py` is an optional alternative/supplement: same candidate discovery (still free, via yt-dlp), but fetches metadata through the YouTube Data API v3 instead of scraping video pages one at a time — faster, and reliably fills in `duration`/`channel_follower_count` where yt-dlp sometimes can't. Needs a `YOUTUBE_API_KEY` env var; see "optional: YouTube Data API" below. Writes into the same `data/videos.csv` cache.
 2. `freeze_benchmark.py` takes a snapshot of `data/videos.csv` and assigns every row to `train`/`val`/`test` via a stable hash of its video id, writing `benchmark/dataset.csv` (committed to git). This is what makes experiments comparable to each other — it's run deliberately, occasionally, not on every training run. Re-run it when you want a new "research epoch" with more scraped data.
 3. `train.py` loads `benchmark/dataset.csv`, drops videos scraped too soon after upload (view counts there are dominated by initial spikes, not steady-state velocity), builds title features (TF-IDF + length/punctuation/clickbait-pattern stats) plus `duration`/`channel_follower_count`/video age, fits candidates (a median baseline, Ridge, gradient boosting — see `build_candidates()`) on `split == 'train'`, and scores them on `split == 'val'` only. Every candidate's metrics get appended to `metrics.csv` (the permanent experiment log), and the best one is saved to `candidate.pkl`. It never touches `model.pkl`.
 4. Promoting a candidate to champion (copying `candidate.pkl` → `model.pkl`, updating `champion.json`) only happens when it beats the current champion's val `log_mse` — see `program.md` for the exact loop.
@@ -42,6 +42,20 @@ predict titles with the current champion:
 ```bash
 python predict.py                          # runs sample titles
 python predict.py "my video title here"    # predict a specific title
+```
+
+### optional: YouTube Data API
+
+`scrape.py` needs no api key. If you want faster/more complete scraping, create a key at the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (enable "YouTube Data API v3" first — free tier is 10,000 quota units/day, and `api_scrape.py` only spends ~1 unit per 50 videos), then either:
+
+```bash
+# PowerShell
+$env:YOUTUBE_API_KEY = "your-key-here"
+```
+or drop it in a local `.env` file (gitignored) as `YOUTUBE_API_KEY=your-key-here` — `api_scrape.py` will pick it up automatically if `python-dotenv` is installed.
+
+```bash
+python api_scrape.py
 ```
 
 output looks like:
