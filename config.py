@@ -20,6 +20,12 @@ SEED_WORDS = [
     "career advice", "startup story", "real estate investing",
     "world news today", "standup comedy", "song cover", "dance tutorial",
     "magic tricks", "product review", "minecraft", "video essay",
+    "cat vlog", "pet care tips", "wildlife documentary", "farm animals",
+    "electric car review", "motorcycle review", "car maintenance",
+    "anime opening", "manga review", "nonprofit spotlight", "charity work",
+    "volunteer story", "climate change explained", "short film",
+    "animation breakdown", "movie trailer reaction", "true story",
+    "documentary short",
 ]
 # Each candidate now requires its own metadata fetch (see scrape.py) since
 # yt-dlp's flat search no longer returns upload_date/channel_follower_count,
@@ -28,7 +34,7 @@ SEED_WORDS = [
 # controls how deep into each seed word's search results to look - raising it
 # surfaces candidates past the previous cutoff instead of re-finding the same
 # top results on every run.
-MAX_RESULTS_PER_SEED = 100
+MAX_RESULTS_PER_SEED = 200
 
 DATA_PATH = "data/videos.csv"
 METRICS_PATH = "metrics.csv"
