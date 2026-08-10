@@ -104,6 +104,42 @@ def parse_args():
     return parser.parse_args()
 
 
+def compare_titles(titles, model, category=None, duration=None,
+                    channel_follower_count=None, thumbnail=None):
+    """Rank titles against each other with category/duration/channel_follower_count/
+    thumbnail held identical across all of them (whether that's real values or the
+    same imputed defaults - either way it's apples-to-apples), isolating title's
+    effect. This is the model's main practical use: absolute forecasts are soft
+    (val mdape ~69%, i.e. a typical single prediction is only right to within
+    roughly 2-3x) but a same-context ranking is a much steadier signal, since
+    systematic error in the imputed/shared context cancels out of the comparison
+    rather than compounding into it. Returns (title, day-1 views/day) pairs sorted
+    best-first.
+    """
+    scored = [
+        (title, predict_views_per_day(
+            title, model, days_old=1, category=category, duration=duration,
+            channel_follower_count=channel_follower_count, thumbnail=thumbnail,
+        ))
+        for title in titles
+    ]
+    scored.sort(key=lambda pair: pair[1], reverse=True)
+    return scored
+
+
+def print_comparison(titles, model, **extra):
+    ranked = compare_titles(titles, model, **extra)
+    best_title, best_vpd = ranked[0]
+    print("Ranked comparison (day-1 views/day; category/duration/followers/thumbnail")
+    print("held identical across all titles, so this isolates title's effect):")
+    for rank, (title, vpd) in enumerate(ranked, start=1):
+        pct_of_best = 100 * vpd / best_vpd if best_vpd else 0
+        marker = "  <- predicted best" if rank == 1 else ""
+        print(f"  {rank}. {pct_of_best:>4.0f}% of best  {vpd:>12,.0f}/day  {title}{marker}")
+    print("  (title alone explains a modest share of view variance - treat this as a")
+    print("   directional signal for A/B-ing titles, not a precise forecast for either.)")
+
+
 def main():
     args = parse_args()
     model = load_model()
@@ -122,6 +158,9 @@ def main():
             projected_total = vpd_at_horizon * days
             print(f"  Projected views by {days}d: {projected_total:>12,.0f}")
         print("-" * 40)
+
+    if len(titles) > 1:
+        print_comparison(titles, model, **extra)
 
 
 if __name__ == "__main__":

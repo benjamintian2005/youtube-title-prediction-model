@@ -27,6 +27,7 @@ python train.py               # train all candidates, score on val, log to metri
 python check_test.py          # score champion on held-out test split (run rarely, not every cycle)
 python predict.py                        # sample predictions from current champion (model.pkl)
 python predict.py "some title here"      # predict a specific title
+python predict.py "title A" "title B"    # 2+ titles -> also ranks them against each other (primary intended use, see README)
 
 python plot_progress.py       # regenerate progress.png from champion.json's git history (after a promotion)
 ```
@@ -81,7 +82,12 @@ scrape.py / api_scrape.py -> data/videos.csv (gitignored, ever-growing cache)
   `--thumbnail` are optional CLI flags for anything else you happen to know ahead of publishing
   (falls back to imputed medians / an "unknown" category bucket when omitted). Per permutation
   importance on val, `channel_follower_count` and `category` are the #1 and #4 most important
-  features overall, so those two flags matter most for prediction accuracy.
+  features overall, so those two flags matter most for prediction accuracy. When called with 2+
+  titles, `compare_titles()`/`print_comparison()` also rank them against each other (day-1
+  views/day, with category/duration/followers/thumbnail held identical across all of them) — per
+  the README, this ranked comparison is the tool's primary intended use, not a bonus feature: a
+  single title's absolute prediction is soft (val `mdape` ~69%), but non-title noise cancels out
+  of a same-context ranking instead of compounding into it.
 - **`champion.json`** — records the current champion's metrics, `git_commit`, and a `note`
   explaining the hypothesis/change. `model.pkl`/`candidate.pkl`/`champion.json` are all gitignored
   — reproducibility comes from the committed code + `champion.json`'s `git_commit`, not from
