@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.6447,
-  "log_r2": 0.6748,
-  "real_mae": 9441.1,
-  "mdape": 69.0,
+  "log_mse": 1.5216,
+  "log_r2": 0.6991,
+  "real_mae": 9292.8,
+  "mdape": 65.7,
   "model_name": "hgb",
-  "timestamp": "2026-08-09T18:10:00",
-  "git_commit": "96d1132",
-  "note": "gen-6 baseline: pivot cycle 5/5 of this batch - raised MAX_RESULTS_PER_SEED 75 -> 100, growing data 6354 -> 7837 rows and thumbnail_url coverage 72.4% -> 79.5%. Re-froze benchmark/dataset.csv (5449/1216/1172 train/val/test). New epoch - log_r2 (0.675 vs gen-5's 0.644) is the meaningful cross-epoch comparison, another solid jump; mdape improved too (69.0% vs 70.0%). Test set (n=1077) log_r2=0.696, mdape=69.8%, agrees closely - no overfitting flag."
+  "timestamp": "2026-08-10T00:31:53",
+  "git_commit": "c7094d2",
+  "note": "new feature axis: channel_hist_log_vpd - a channel's own historical performance (mean log(views/day) of its OTHER videos in the dataset), looked up by channel_id. Split-aware and leak-safe: stats computed from split == 'train' only, with leave-one-out for train rows themselves (see train.py's _add_channel_history_feature); NaN (imputed) for channels with no other train-split video, which is most channels (only 1153/4241 channels have 2+ videos - covers 4745/7837 rows). channel_id was backfilled for the existing 7837-row cache via the YouTube Data API (videos.list, part=snippet) and is now captured going forward by both scrape.py and api_scrape.py. Re-froze benchmark/dataset.csv to bring the new column in, but row count and train/val/test split are unchanged (5449/1216/1172, same video_id hashes) - directly comparable to gen-6, not a new epoch. log_r2 0.675 -> 0.699, log_mse 1.645 -> 1.522, mdape 69.0% -> 65.7%."
 }

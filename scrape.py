@@ -14,6 +14,7 @@ REQUEST_DELAY_SECONDS = 0.5
 DATA_COLUMNS = [
     "video_id", "title", "view_count", "upload_date",
     "duration", "channel_follower_count", "category", "thumbnail_url", "scraped_at",
+    "channel_id",
 ]
 
 
@@ -81,6 +82,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED):
                     "category": categories[0] if categories else None,
                     "thumbnail_url": entry.get("thumbnail"),
                     "scraped_at": scraped_at,
+                    "channel_id": entry.get("channel_id"),
                 })
     return data
 

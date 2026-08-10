@@ -45,6 +45,37 @@ def load_benchmark(path=config.BENCHMARK_PATH):
     )
 
 
+def _add_channel_history_feature(df):
+    # A channel's own past performance (independent of raw subscriber count -
+    # e.g. upload cadence, audience engagement) turned out to be a plausible
+    # missing signal, so this looks up each row's channel's average log(views/
+    # day) among *other* videos from that channel. Split-aware and leak-safe:
+    # stats are computed from split == 'train' rows only (so val/test targets
+    # never leak into a feature), and a train row excludes its own log_vpd
+    # from its own channel average (leave-one-out) so it can't trivially see
+    # its own target. Channels with no other train-split video (the common
+    # case - most channels appear once in this dataset) get NaN, imputed
+    # downstream like duration/channel_follower_count.
+    train_mask = df["split"] == "train"
+    train_log_vpd = df.loc[train_mask, "log_vpd"]
+    train_channel_id = df.loc[train_mask, "channel_id"]
+    sums = train_log_vpd.groupby(train_channel_id).sum()
+    counts = train_log_vpd.groupby(train_channel_id).count()
+
+    def _hist_for_row(row):
+        cid = row["channel_id"]
+        if pd.isna(cid) or cid not in counts.index:
+            return np.nan
+        n = counts[cid]
+        if row["split"] == "train":
+            if n <= 1:
+                return np.nan
+            return (sums[cid] - row["log_vpd"]) / (n - 1)
+        return sums[cid] / n
+
+    return df.apply(_hist_for_row, axis=1)
+
+
 def build_features(raw_df):
     # Filtering/feature logic is intentionally applied *after* loading the
     # frozen benchmark rather than baked into it, so changing MIN_DAYS_OLD or
@@ -56,6 +87,8 @@ def build_features(raw_df):
             df[col] = None  # benchmark snapshot predates this feature
     if "thumbnail_url" not in df.columns:
         df["thumbnail_url"] = None  # benchmark snapshot predates this feature
+    if "channel_id" not in df.columns:
+        df["channel_id"] = None  # benchmark snapshot predates this feature
     df["upload_date"] = pd.to_datetime(df["upload_date"], format="%Y%m%d")
     df["scraped_at"] = pd.to_datetime(df["scraped_at"], format="%Y%m%d")
     df["days_old"] = (df["scraped_at"] - df["upload_date"]).dt.days.clip(lower=1)
@@ -64,6 +97,8 @@ def build_features(raw_df):
 
     df["views_per_day"] = df["view_count"] / df["days_old"]
     df["log_days_old"] = np.log1p(df["days_old"])
+    df["log_vpd"] = np.log1p(df["views_per_day"])
+    df["channel_hist_log_vpd"] = _add_channel_history_feature(df)
 
     title_feats = pd.DataFrame(df["title"].apply(engineer_title_features).tolist())
     df = pd.concat([df.reset_index(drop=True), title_feats], axis=1)

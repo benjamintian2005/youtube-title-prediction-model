@@ -157,6 +157,7 @@ def fetch_data(seed_words, max_results=config.MAX_RESULTS_PER_SEED, api_key=None
             "category": CATEGORY_NAMES.get(category_id, category_id),
             "thumbnail_url": _best_thumbnail_url(snippet.get("thumbnails")),
             "scraped_at": scraped_at,
+            "channel_id": channel_id,
         })
     return data
 

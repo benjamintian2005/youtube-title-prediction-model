@@ -53,6 +53,11 @@ def build_input_row(title, days_old=None, category=None, duration=None,
     feats["channel_follower_count"] = (
         channel_follower_count if channel_follower_count is not None else np.nan
     )
+    # channel_hist_log_vpd (a channel's own historical performance - see
+    # train.py's _add_channel_history_feature) needs a channel_id lookup
+    # against training data, which predict.py's CLI has no way to supply;
+    # always falls back to the imputed median like duration.
+    feats["channel_hist_log_vpd"] = np.nan
     feats["category"] = category if category is not None else np.nan
     if thumbnail:
         feats.update(thumbnails.features_from_source(thumbnail))
