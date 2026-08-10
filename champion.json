@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.7025,
-  "log_r2": 0.7845,
-  "real_mae": 7989.7,
-  "mdape": 66.6,
+  "log_mse": 1.7847,
+  "log_r2": 0.7957,
+  "real_mae": 6884.1,
+  "mdape": 67.6,
   "model_name": "hgb",
-  "timestamp": "2026-08-10T01:18:13",
-  "git_commit": "26a54b7",
-  "note": "pivot: grow the dataset - raised MAX_RESULTS_PER_SEED 100 -> 200 and added 18 new seed words targeting underrepresented categories (pets, autos, anime, nonprofits, film/animation). data/videos.csv 7837 -> 16663 rows. Re-froze benchmark/dataset.csv (11634/2524/2505 train/val/test) - new epoch, not directly comparable on log_mse (different val set scale) but log_r2 is the meaningful cross-epoch comparison per convention: 0.699 (prior gen, channel_hist_log_vpd) -> 0.785, a large jump, consistent with data growth being the highest-leverage lever historically. mdape improved too (65.7% -> 66.6% is roughly flat, real_mae improved 9292.8 -> 7989.7). Note: ridge's real_mae this run is a wild outlier (~10.9M) - likely a blown-up prediction from an extreme channel_follower_count value now in the larger val set; doesn't affect hgb (the promoted candidate) and ridge isn't the champion, so not investigated further this cycle."
+  "timestamp": "2026-08-10T02:19:01",
+  "git_commit": "2fede14",
+  "note": "pivot cycle 2/2 of this batch: pushed MAX_RESULTS_PER_SEED further, 200 -> 400 (seed word list unchanged from the previous cycle, isolating search-depth as the lever). data/videos.csv 16663 -> 31684 rows. Re-froze benchmark/dataset.csv (22136/4796/4752 train/val/test) - new epoch. log_r2 0.785 (prior gen, 200-deep search) -> 0.796, another solid jump, smaller than the 0.699 -> 0.785 jump from the first data-growth cycle (diminishing but still positive returns from search depth alone). real_mae improved further (7989.7 -> 6884.1); mdape roughly flat (66.6% -> 67.6%)."
 }

@@ -34,7 +34,7 @@ SEED_WORDS = [
 # controls how deep into each seed word's search results to look - raising it
 # surfaces candidates past the previous cutoff instead of re-finding the same
 # top results on every run.
-MAX_RESULTS_PER_SEED = 200
+MAX_RESULTS_PER_SEED = 400
 
 DATA_PATH = "data/videos.csv"
 METRICS_PATH = "metrics.csv"
