@@ -8,3 +8,6 @@ Pillow>=10.0
 # optional: only needed for api_scrape.py (YouTube Data API v3 data source)
 requests>=2.31
 python-dotenv>=1.0
+
+# optional: only needed for plot_progress.py (regenerates progress.png)
+matplotlib>=3.8

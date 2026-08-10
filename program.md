@@ -31,6 +31,9 @@ Lower is better. Your job each cycle is to try to beat it.
      git add features.py train.py config.py requirements.txt champion.json
      git commit -m "describe the hypothesis and the val log_mse improvement"
      ```
+     After a promotion (not on discards), also run `python plot_progress.py` and commit the
+     updated `progress.png` - it's a small, cheap step and keeps the chart honest as a record
+     of every kept experiment, not something to skip because it's not the "real" work.
    - **Not better** -> revert the code:
      ```bash
      git checkout -- features.py train.py config.py requirements.txt

@@ -1,5 +1,7 @@
 # youtube title → view predictor
 
+![progress](progress.png)
+
 predicts how many views a youtube video might get based on its title (plus a few side signals). trained on live data scraped with yt-dlp — no api key needed.
 
 this is set up as an **autoresearch**-style project (see [karpathy/autoresearch](https://github.com/karpathy/autoresearch)): a frozen, comparable benchmark; one north-star metric (val `log_mse`); a narrow surface a coding agent iterates on; and a mechanical keep/discard loop. `program.md` is the actual instructions for running that loop.
@@ -42,6 +44,11 @@ predict titles with the current champion:
 ```bash
 python predict.py                          # runs sample titles
 python predict.py "my video title here"    # predict a specific title
+```
+
+regenerate the progress chart (walks `champion.json`'s git history, one point per promotion):
+```bash
+python plot_progress.py
 ```
 
 ### optional: YouTube Data API
