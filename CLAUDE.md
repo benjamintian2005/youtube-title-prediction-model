@@ -77,7 +77,11 @@ scrape.py / api_scrape.py -> data/videos.csv (gitignored, ever-growing cache)
   touches `model.pkl` — promotion is a separate, manual step.
 - **`predict.py`** — loads `model.pkl` and predicts views/day at multiple horizons (day 1/30/365)
   by querying the model separately at each `log_days_old`, since `log_days_old` is the strongest
-  feature and decay is not linear.
+  feature and decay is not linear. Title is required; `--category`/`--duration`/`--followers`/
+  `--thumbnail` are optional CLI flags for anything else you happen to know ahead of publishing
+  (falls back to imputed medians / an "unknown" category bucket when omitted). Per permutation
+  importance on val, `channel_follower_count` and `category` are the #1 and #4 most important
+  features overall, so those two flags matter most for prediction accuracy.
 - **`champion.json`** — records the current champion's metrics, `git_commit`, and a `note`
   explaining the hypothesis/change. `model.pkl`/`candidate.pkl`/`champion.json` are all gitignored
   — reproducibility comes from the committed code + `champion.json`'s `git_commit`, not from

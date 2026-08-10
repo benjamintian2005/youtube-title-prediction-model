@@ -89,10 +89,11 @@ any other batch.
 
 - **Don't touch `benchmark/dataset.csv` or re-freeze it as part of a routine hyperparameter
   cycle** - only as a deliberate **Pivoting** action (see above) when growing the data is the
-  chosen lever, and only between cycles, never mid-cycle. `predict.py`'s input contract
-  (title-only CLI, falls back to imputed/unknown for anything else) shouldn't change casually
-  either - if a pivot needs it to accept new input (e.g. a thumbnail pivot letting a user pass
-  an image), that's a deliberate, documented interface change, not a side effect.
+  chosen lever, and only between cycles, never mid-cycle. `predict.py`'s input contract (title
+  required; `category`/`duration`/`channel_follower_count`/`thumbnail` optional via CLI flags,
+  falling back to imputed/unknown for anything not passed - see README's "usage" section)
+  shouldn't change casually either - if a pivot needs a new optional input, that's a deliberate,
+  documented interface change, not a side effect.
 - **Never evaluate against `split == 'test'` during the loop.** `check_test.py` exists
   specifically so the held-out test set doesn't get implicitly optimized against every
   iteration. Run it only occasionally (e.g. every ~10 kept improvements) as a sanity check

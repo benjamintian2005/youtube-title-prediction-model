@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import io
 import os
 
 import numpy as np
@@ -43,7 +44,15 @@ def _download(video_id, url):
 
 def _extract_features(path):
     try:
-        img = Image.open(path).convert("RGB").resize(RESIZE_TO)
+        img = Image.open(path)
+    except Exception:
+        return dict(_NAN_FEATURES)
+    return _extract_features_from_image(img)
+
+
+def _extract_features_from_image(img):
+    try:
+        img = img.convert("RGB").resize(RESIZE_TO)
     except Exception:
         return dict(_NAN_FEATURES)
 
@@ -71,6 +80,25 @@ def get_features(video_id, url):
     if path is None:
         return dict(_NAN_FEATURES)
     return _extract_features(path)
+
+
+def features_from_source(source):
+    """Compute thumbnail features from an arbitrary local file path or URL, for
+    predict.py's --thumbnail option (a candidate thumbnail for a not-yet-published
+    title). Unlike get_features(), this doesn't go through the video_id-keyed
+    CACHE_DIR - there's no video_id yet, and the point is to score whatever image
+    the caller hands in, not a scraped training example. Bad path/URL -> NaN
+    features, same imputation-friendly contract as the rest of this module."""
+    try:
+        if source.startswith("http://") or source.startswith("https://"):
+            resp = requests.get(source, timeout=DOWNLOAD_TIMEOUT)
+            resp.raise_for_status()
+            img = Image.open(io.BytesIO(resp.content))
+        else:
+            img = Image.open(source)
+    except Exception:
+        return dict(_NAN_FEATURES)
+    return _extract_features_from_image(img)
 
 
 def compute_features_for_df(df, video_id_col="video_id", url_col="thumbnail_url"):

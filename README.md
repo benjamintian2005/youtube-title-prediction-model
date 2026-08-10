@@ -44,6 +44,12 @@ predict titles with the current champion:
 ```bash
 python predict.py                          # runs sample titles
 python predict.py "my video title here"    # predict a specific title
+
+# category/duration/followers/thumbnail are all optional - pass whichever you
+# actually know ahead of publishing and the rest still falls back to imputed
+# medians / an "unknown" category bucket:
+python predict.py --category Gaming --followers 500000 --duration 600 \
+    --thumbnail path/or/url/to/thumbnail.jpg "my video title here"
 ```
 
 regenerate the progress chart (walks `champion.json`'s git history, one point per promotion):
@@ -75,7 +81,7 @@ Title: how to make ramen at home
 
 ## notes
 
-- predictions are rough — title is a weak signal on its own. channel size, thumbnail, and upload timing matter way more. `duration`/`channel_follower_count` are used as features when training but are unknown at title-only prediction time, so `predict.py` falls back to training medians for them. `category` (a video's YouTube category, e.g. "Gaming") is different — it's legitimately knowable pre-publish — but `predict.py`'s CLI is title-only for now, so it also falls back to an "unknown" bucket at inference time rather than being something you can pass in.
+- predictions are rough — title is a weak signal on its own. channel size, category, and thumbnail matter way more (per permutation importance on the val set, `channel_follower_count` is the single strongest feature the model has — stronger than `title` — and `category` is a clear #4, ahead of `duration` and all five thumbnail stats individually). `predict.py` still defaults to imputed medians / an "unknown" category bucket for anything it isn't told, since none of these are knowable from a title alone — but if you *do* know your channel's subscriber count, the category you'll pick, a planned duration, or already have a candidate thumbnail, pass them via `--followers`/`--category`/`--duration`/`--thumbnail` for a meaningfully more accurate prediction (see "usage" above). These flags don't change the trained model or `champion.json`'s metric — the benchmark already uses real values for all of them — they only change what a given prediction call has to fall back to.
 - `SEED_WORDS` is deliberately a list of real topic phrases (not generic filler words like "the"/"of") spanning YouTube's major content categories — generic search terms mostly just surface whatever's already most-viewed for that term, which skews the sample toward viral outliers and gives the `category` feature nothing to distinguish.
 - `thumbnails.py` downloads each video's thumbnail (URL captured by both scrapers, free) into `data/thumbnails/` (gitignored, cached so repeat runs don't re-download) and extracts cheap image stats (brightness, saturation, contrast, edge density, warmth) rather than a full vision embedding, to keep training fast and dependency-light. Like `category`, `predict.py` has no thumbnail for a title-only prediction, so these fall back to imputed values too.
 - video age (`log_days_old`) turned out to be the strongest feature in the trained model — views/day decays sharply as a video ages, so `predict.py` queries the model separately at each projection horizon (day 1, 30, 365) instead of scaling a single point-estimate, otherwise the 30d/365d numbers would silently assume a constant daily rate.
