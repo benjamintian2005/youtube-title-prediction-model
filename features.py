@@ -18,6 +18,7 @@ NUMERIC_FEATURE_COLUMNS = [
     "has_colon", "first_person_pronoun", "all_caps_word_count",
     "title_length_bucket", "log_days_old",
     "duration", "channel_follower_count", "channel_hist_log_vpd",
+    "upload_dow",
 ] + THUMBNAIL_FEATURE_COLUMNS
 
 # Unlike duration/channel_follower_count, category is legitimately knowable

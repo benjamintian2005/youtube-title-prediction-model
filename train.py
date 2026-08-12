@@ -114,6 +114,7 @@ def build_features(raw_df):
     df["upload_date"] = pd.to_datetime(df["upload_date"], format="%Y%m%d")
     df["scraped_at"] = pd.to_datetime(df["scraped_at"], format="%Y%m%d")
     df["days_old"] = (df["scraped_at"] - df["upload_date"]).dt.days.clip(lower=1)
+    df["upload_dow"] = df["upload_date"].dt.dayofweek  # 0=Monday, 6=Sunday
 
     df = df[df["days_old"] >= config.MIN_DAYS_OLD].reset_index(drop=True)
 

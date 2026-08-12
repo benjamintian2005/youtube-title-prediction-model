@@ -58,6 +58,7 @@ def build_input_row(title, days_old=None, category=None, duration=None,
     # against training data, which predict.py's CLI has no way to supply;
     # always falls back to the imputed median like duration.
     feats["channel_hist_log_vpd"] = np.nan
+    feats["upload_dow"] = np.nan  # knowable but not passed via CLI; imputed to median
     feats["category"] = category if category is not None else np.nan
     if thumbnail:
         feats.update(thumbnails.features_from_source(thumbnail))

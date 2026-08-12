@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.7685,
-  "log_r2": 0.7976,
-  "real_mae": 6857.9,
+  "log_mse": 1.7579,
+  "log_r2": 0.7988,
+  "real_mae": 6881.6,
   "mdape": 67.4,
   "model_name": "hgb",
   "timestamp": "2026-08-12T00:00:00",
-  "git_commit": "d8909ec",
-  "note": "re-trained on same frozen benchmark after thumbnail feature caching refactor (benchmark/thumbnail_features.csv). no modeling change - grid search selected lr=0.1 vs prior lr=0.05, yielding a small gain (log_mse 1.7847 -> 1.7685). promoted to keep champion.json current on this machine."
+  "git_commit": "76de090",
+  "note": "add upload_dow (day of week, 0=Mon 6=Sun) derived from upload_date as a numeric feature. small but real gain: log_mse 1.7685 -> 1.7579. hypothesis: upload day has systematic effect on view velocity (weekend vs weekday audiences). predict.py falls back to imputed median for upload_dow since it's not yet a CLI flag."
 }
