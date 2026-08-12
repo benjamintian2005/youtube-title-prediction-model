@@ -46,6 +46,7 @@ MODEL_PATH = "model.pkl"
 # freeze_benchmark.py; regenerating it is a deliberate, occasional action, not
 # something train.py does on its own. See program.md.
 BENCHMARK_PATH = "benchmark/dataset.csv"
+THUMBNAIL_FEATURES_PATH = "benchmark/thumbnail_features.csv"
 TRAIN_SPLIT_MAX = 70  # hash bucket 0-69 -> train
 VAL_SPLIT_MAX = 85  # hash bucket 70-84 -> val, 85-99 -> test
 

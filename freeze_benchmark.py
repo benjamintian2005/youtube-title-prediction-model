@@ -3,6 +3,7 @@ import os
 
 import config
 import scrape
+import thumbnails
 
 
 def _split_for(video_id):
@@ -29,6 +30,12 @@ def main():
     print(f"Froze {len(df)} rows from {config.DATA_PATH} -> {config.BENCHMARK_PATH}")
     for split in ["train", "val", "test"]:
         print(f"  {split}: {counts.get(split, 0)}")
+
+    print("Computing thumbnail features (downloads cached to data/thumbnails/)...")
+    thumb_feats = thumbnails.compute_features_for_df(df)
+    thumb_feats.insert(0, "video_id", df["video_id"].values)
+    thumb_feats.to_csv(config.THUMBNAIL_FEATURES_PATH, index=False)
+    print(f"Saved thumbnail features -> {config.THUMBNAIL_FEATURES_PATH}")
 
 
 if __name__ == "__main__":

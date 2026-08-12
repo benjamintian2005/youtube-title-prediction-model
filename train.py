@@ -76,6 +76,28 @@ def _add_channel_history_feature(df):
     return df.apply(_hist_for_row, axis=1)
 
 
+def _load_or_compute_thumbnail_features(df):
+    path = config.THUMBNAIL_FEATURES_PATH
+    if not os.path.exists(path):
+        return thumbnails.compute_features_for_df(df)
+
+    cached = pd.read_csv(path, dtype={"video_id": str}).set_index("video_id")
+    in_cache = df["video_id"].isin(cached.index)
+
+    result = pd.DataFrame(index=df.index, columns=thumbnails.THUMBNAIL_FEATURE_COLUMNS, dtype=float)
+
+    if in_cache.any():
+        rows = cached.reindex(df.loc[in_cache, "video_id"].values)
+        rows.index = df.loc[in_cache].index
+        result.loc[in_cache] = rows.values
+
+    if (~in_cache).any():
+        downloaded = thumbnails.compute_features_for_df(df[~in_cache])
+        result.loc[~in_cache] = downloaded.values
+
+    return result
+
+
 def build_features(raw_df):
     # Filtering/feature logic is intentionally applied *after* loading the
     # frozen benchmark rather than baked into it, so changing MIN_DAYS_OLD or
@@ -103,9 +125,10 @@ def build_features(raw_df):
     title_feats = pd.DataFrame(df["title"].apply(engineer_title_features).tolist())
     df = pd.concat([df.reset_index(drop=True), title_feats], axis=1)
 
-    # Downloads are cached under data/thumbnails/ (gitignored like data/videos.csv) -
-    # only the first run against a given benchmark actually pays the network cost.
-    thumb_feats = thumbnails.compute_features_for_df(df)
+    # Load pre-computed thumbnail features from the committed benchmark file if
+    # available (fast on fresh clones - no downloads). Falls back to downloading
+    # only for rows not covered, and freeze_benchmark.py keeps the file current.
+    thumb_feats = _load_or_compute_thumbnail_features(df)
     df = pd.concat([df, thumb_feats], axis=1)
 
     feature_cols = ["title"] + NUMERIC_FEATURE_COLUMNS + CATEGORICAL_FEATURE_COLUMNS
