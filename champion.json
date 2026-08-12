@@ -1,10 +1,10 @@
 {
-  "log_mse": 1.7847,
-  "log_r2": 0.7957,
-  "real_mae": 6884.1,
-  "mdape": 67.6,
+  "log_mse": 1.7685,
+  "log_r2": 0.7976,
+  "real_mae": 6857.9,
+  "mdape": 67.4,
   "model_name": "hgb",
-  "timestamp": "2026-08-10T02:19:01",
-  "git_commit": "2fede14",
-  "note": "pivot cycle 2/2 of this batch: pushed MAX_RESULTS_PER_SEED further, 200 -> 400 (seed word list unchanged from the previous cycle, isolating search-depth as the lever). data/videos.csv 16663 -> 31684 rows. Re-froze benchmark/dataset.csv (22136/4796/4752 train/val/test) - new epoch. log_r2 0.785 (prior gen, 200-deep search) -> 0.796, another solid jump, smaller than the 0.699 -> 0.785 jump from the first data-growth cycle (diminishing but still positive returns from search depth alone). real_mae improved further (7989.7 -> 6884.1); mdape roughly flat (66.6% -> 67.6%)."
+  "timestamp": "2026-08-12T00:00:00",
+  "git_commit": "d8909ec",
+  "note": "re-trained on same frozen benchmark after thumbnail feature caching refactor (benchmark/thumbnail_features.csv). no modeling change - grid search selected lr=0.1 vs prior lr=0.05, yielding a small gain (log_mse 1.7847 -> 1.7685). promoted to keep champion.json current on this machine."
 }
